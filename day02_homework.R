@@ -18,11 +18,11 @@ summary(data$education)
 # I think numbers in the first column are labels, but it seems that R does not treat them as such.
 
 # 8. Select a few key columns, make a vector of the column names
-data.rows <- 1:21638
 sex <- data$sex
 education <- data$education
 vocabulary <- data$vocabulary
 # 9. Create a new data.frame with just that subset of columns
+data.rows <- 1:21638
 sex.edu.vocab <- data[data.rows, 3:5]
 # 10. Create a new data.frame that is just the first 10 rows
 #     and the last 10 rows of the data from the previous step
@@ -48,7 +48,8 @@ edu.ttest2 <- t.test(edu.2004,edu.2000, var.equal = TRUE)
 #     - run the t.test with BOTH the formula and "vector"
 #       formats, if possible
 #     - if one is NOT possible, say why you can't do it
-# I don't fully understand the above two questions. Could you please talk about it tomorrow during the review?
+t.test(data$education~data$sex)
+mf.ttest1 <- t.test(data$education~data$sex)
 
 # 13. Repeat #12 for TWO more comparisons
 #     - ALTERNATIVELY, if correlations are more interesting,
@@ -62,13 +63,15 @@ t.test(vocab.2004, vocab.2000)
 vocab.ttest1 <- t.test(vocab.2004, vocab.2000)
 t.test(vocab.2004, vocab.2000, var.equal = TRUE)
 vocab.ttest2 <- t.test(vocab.2004, vocab.2000, var.equal = TRUE)
+t.test(data$vocabulary~data$sex)
+mf.ttest2 <- t.test(data$vocabulary~data$sex)
 
 cor(data$education, data$vocabulary, method = "pearson")
 edu.vocab.cor1 <- cor(data$education, data$vocabulary, method = "pearson")
 cor(data$education, data$vocabulary, method = "spearman")
 edu.vocab.cor2 <- cor(data$education, data$vocabulary, method = "spearman")
 # 14. Save all results from #12 and #13 in an .RData file
-save(edu.ttest1, edu.ttest2, vocab.ttest1, vocab.ttest2, edu.vocab.cor1, edu.vocab.cor2, file = "results_day02.RData")
+save(edu.ttest1, edu.ttest2, mf.ttest1, vocab.ttest1, vocab.ttest2, mf.ttest2, edu.vocab.cor1, edu.vocab.cor2, file = "results_day02.RData")
 # 15. Email me your version of this script, PLUS the .RData
 #     file from #14
 #     - ALTERNATIVELY, push your version of this script and your .RData results
