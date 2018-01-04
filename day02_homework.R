@@ -2,11 +2,12 @@
 # Use comments where you're having trouble or questions
 
 # 1. Read your data set into R
-load(file = "data.RData")
+data <- read.csv("vocab.csv")
 # 2. Peek at the top few rows
 head(data)
 # 3. Peek at the top few rows for only a few columns
-head(data[3:5])
+head(data[ , 3:5])
+head(data[ , c("sex", "education", "vocabulary")])
 # 4. How many rows does your data have?
 nrow(data)
 # 5. Get a summary for every column
@@ -18,19 +19,22 @@ summary(data$education)
 # I think numbers in the first column are labels, but it seems that R does not treat them as such.
 
 # 8. Select a few key columns, make a vector of the column names
-sex <- data$sex
-education <- data$education
-vocabulary <- data$vocabulary
+colnames(data)
+key.columns <- colnames(data)[c(3, 4, 5)]
 # 9. Create a new data.frame with just that subset of columns
-data.rows <- 1:21638
-sex.edu.vocab <- data[data.rows, 3:5]
+data.sub1 <- data[ , key.columns]
+data.sub1
 # 10. Create a new data.frame that is just the first 10 rows
 #     and the last 10 rows of the data from the previous step
-first.10.rows <- head(sex.edu.vocab, n = 10)
-last.10.rows <- tail(sex.edu.vocab, n = 10)
+data.sub2 <- data.sub1[c(1:10, (nrow(data.sub1)-9):nrow(data.sub1)), ]
+data.sub2
 # 11. Create a new data.frame that is a random sample of half of the rows.
 # HINT: ?sample
-sample.data <- data[sample(data.rows,nrow(data)/2),1:5]
+sample.data <- data[sample(nrow(data),nrow(data)/2), ]
+sample.data
+sample.rows <- sample(x = nrow(data), size = nrow(data)/2)
+sample.rows
+sample.data <- data[sample.rows, ]
 sample.data
 # 12. Find a comparison in your data that is interesting to make
 #     (comparing two sets of numbers)
@@ -48,8 +52,8 @@ edu.ttest2 <- t.test(edu.2004,edu.2000, var.equal = TRUE)
 #     - run the t.test with BOTH the formula and "vector"
 #       formats, if possible
 #     - if one is NOT possible, say why you can't do it
-t.test(data$education~data$sex)
-mf.ttest1 <- t.test(data$education~data$sex)
+t.test(data$education ~ data$sex)
+mf.ttest1 <- t.test(data$education ~ data$sex)
 
 # 13. Repeat #12 for TWO more comparisons
 #     - ALTERNATIVELY, if correlations are more interesting,
@@ -63,8 +67,8 @@ t.test(vocab.2004, vocab.2000)
 vocab.ttest1 <- t.test(vocab.2004, vocab.2000)
 t.test(vocab.2004, vocab.2000, var.equal = TRUE)
 vocab.ttest2 <- t.test(vocab.2004, vocab.2000, var.equal = TRUE)
-t.test(data$vocabulary~data$sex)
-mf.ttest2 <- t.test(data$vocabulary~data$sex)
+t.test(data$vocabulary ~ data$sex)
+mf.ttest2 <- t.test(data$vocabulary ~ data$sex)
 
 cor(data$education, data$vocabulary, method = "pearson")
 edu.vocab.cor1 <- cor(data$education, data$vocabulary, method = "pearson")
