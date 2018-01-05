@@ -1,0 +1,69 @@
+---
+title: "Day 3 Homework"
+output: html_document
+---
+
+1. Identify a column in your data that *should* be a factor (whether it is or not). Check to see whether R is already treating it as a factor, and if not, convert it into a factor.
+
+The column "sex" should be a factor, but R did not treat it as a factor.
+
+```{r}
+my.vocab <- read.csv("vocab.csv")
+levels(my.vocab$sex)
+```
+
+2. What are the levels of the factor? How many occurrences of each level are there in the data?
+   
+```{r}
+levels(my.vocab$sex)
+summary(my.vocab$sex)
+```
+
+3. Create a new column that is a numeric "version" of the factor column, using `as.numeric()`. Use `xtabs()` to see how the values of these columns line up.
+
+```{r}
+my.vocab$sexNum <- as.numeric(my.vocab$sex)
+xtabs(~ sex + sexNum, my.vocab)
+```
+
+4. Create another column that is a copy of the factor column. Now, recode this new column so that the factor levels have new names. 
+  (e.g., if you have a factor with levels "A" and "B", you could make a new column that had "condition A" and "condition B" as the level names instead)
+
+```{r}
+my.vocab$sexNew <- my.vocab$sex
+levels(my.vocab$sexNew) <- c("girl", "boy")
+summary(my.vocab$sexNew)
+
+summary(my.vocab$sex)
+my.vocab$sexNew <- factor(my.vocab$sex, labels = c("girl", "boy"))
+summary(my.vocab$sexNew)
+```
+
+5. Change the order of the levels in your new factor, using three different methods:
+  a. `relevel()`
+  b. `reorder()`
+  c. `factor()`
+
+```{r}
+summary(relevel(my.vocab$sexNew, ref = "boy"))
+
+reorder(levels(my.vocab$sexNew), c(2, 1))
+
+summary(factor(my.vocab$sexNew, levels = c("boy", "girl")))
+```
+
+6. Missing values
+  a. Do you have any missing values (NA) in your data?
+  b. Are there any places where you *should* have missing values but they were read into R as some other value?
+  c. If the answer to (b) is "yes", figure out how to read in your data in a way that correctly identifies the missing value "code"
+  d. If you have any NAs in your data, describe why you think those values are missing. Does there appear to be any systematic relationship between missingness and other variables in your data?
+  
+  a. It appears that there are no missing values in my data
+  b. Probably yes, I find it strange that some respondents had a value of "0" for education, but they scored 10 in the vocabulary test. I wonder if these "0"s should be missing values. 
+  c. But in `vocab.csv`, those values are indeed "0".
+  Questions: What is your opinion? Is there anything I can do about it?
+
+```{r}
+my.vocab[my.vocab$education == 0, ]
+```
+
