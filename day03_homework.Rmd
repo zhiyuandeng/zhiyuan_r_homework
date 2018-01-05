@@ -45,11 +45,14 @@ summary(my.vocab$sexNew)
   c. `factor()`
 
 ```{r}
-summary(relevel(my.vocab$sexNew, ref = "boy"))
+my.vocab$sexNew1 <- relevel(my.vocab$sexNew, ref = "boy")
+xtabs(~ sexNew1 + sexNew, my.vocab)
 
-reorder(levels(my.vocab$sexNew), c(2, 1))
+my.vocab$sexNew2 <- reorder(my.vocab$sexNew, my.vocab$vocabulary)
+xtabs(~ sexNew2 + sexNew, my.vocab)
 
-summary(factor(my.vocab$sexNew, levels = c("boy", "girl")))
+my.vocab$sexNew3 <- factor(my.vocab$sexNew, levels = c("boy", "girl"))
+xtabs(~ sexNew3 + sexNew, my.vocab)
 ```
 
 6. Missing values
