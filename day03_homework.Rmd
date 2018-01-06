@@ -48,7 +48,7 @@ summary(my.vocab$sexNew)
 my.vocab$sexNew1 <- relevel(my.vocab$sexNew, ref = "boy")
 levels(my.vocab$sexNew1)
 
-my.vocab$sexNew2 <- reorder(my.vocab$sexNew, my.vocab$vocabulary)
+my.vocab$sexNew2 <- reorder(my.vocab$sexNew, my.vocab$vocabulary, FUN = length)
 levels(my.vocab$sexNew2)
 
 my.vocab$sexNew3 <- factor(my.vocab$sexNew, levels = c("boy", "girl"))
@@ -68,5 +68,6 @@ levels(my.vocab$sexNew3)
 
 ```{r}
 my.vocab[my.vocab$education == 0, ]
+my.vocab[is.na(my.vocab$education), ]
 ```
 

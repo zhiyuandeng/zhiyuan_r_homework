@@ -1,0 +1,38 @@
+---
+title: "Day 4 Homework"
+output: html_document
+---
+
+1. Find some aspect of your data that needs to be combined or merged in some way.  This could be a variety of things:
+  - multiple "sheets" in an Excel
+  - multiple files that should be combined into one data set
+  - properties that need to be merged in to one data set. For example:
+    - you have a table of subject properties (gender, handedness, etc.) that need to be merged into the item-level data
+    - you have other information on countries (population, etc.) that need to be merged in
+  - if you DON'T have this naturally-occurring issue, figure out a way to manufacture it. For example:
+    - split up your data into chunks
+    - make up some new table of information that you want to merge in
+  - Explain (in words) what you are trying to do
+  - Use binding/merging commands to accomplish this
+  - Complete at least ONE example of binding and ONE example of merging
+
+Two conditions are created:
+  - a table of subject properties (handedness) is created to be merged in
+  - new data collected in 2017 is created to be merged in
+```{r}
+my.vocab <- read.csv("vocab.csv")
+my.vocabNew <- my.vocab[ , 2:5]
+
+handedness.info <- data.frame(ID = 1:21638, handedness = c(rep("Left", 10819), rep("Right", 10819))) # make up a new table of info (ID and handedness) to merge in (cbind)
+
+my.vocabNew2 <- cbind(my.vocabNew, handedness.info) # cbind
+my.vocabNew3 <- my.vocabNew2[ , c(5, 1, 2, 6, 3, 4)] # I want to practice reordering columns
+
+new.data.2017 <- data.frame(year = 2017, sex = c("Female", "Male", "Male", "Female"), education = c(10, 12, 15, 9), vocabulary = c(6, 7, 9, 5)) # make up a new table of info (recently collected data) to merge in (rbind)
+
+my.vocabNew4 <- rbind(my.vocabNew, new.data.2017) # rbind
+
+handedness.info$ID <- my.vocab$X
+my.vocabNew5 <- merge(my.vocab, handedness.info, by.x = "X", by.y = "ID") # merge
+
+```
