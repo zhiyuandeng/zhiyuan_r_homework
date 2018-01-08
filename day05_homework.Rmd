@@ -1,0 +1,41 @@
+---
+title: "Day 5 Homework"
+output: html_document
+---
+
+0. Reload your data, and re-use the code you already have for getting things formatted nicely (columns renamed, factors relabeled, etc.)
+
+```{r}
+library(dplyr)
+prof.salary <- read.csv("salaries.csv")
+head(prof.salary)
+colnames(prof.salary)[1] <- "ID"
+prof.salary$ID <- as.character(prof.salary$ID)
+summary(prof.salary)
+
+```
+
+1. Aggregate (e.g., get mean/median/max/something) of some numerical variable, over one or more factors.  Use `group_by()` plus `summarize()` from the `dplyr` package. You may or may not need to reshape the data first!
+
+```{r}
+salary.means <- summarize(group_by(prof.salary, rank, sex), mean.salary = mean(salary), 
+                          std.salary = sd(salary))
+salary.means
+```
+
+2. Get your data into "long" (aka "tidy") format, if it isn't already
+
+```{r}
+# I want to practice gather() in the following code, but I am not sure whether it is necessary in real practice. 
+salary.long <- gather(prof.salary, time.period, yrs, 4:5)
+salary.long$time.period <- as.factor(salary.long$time.period)
+levels(salary.long$time.period) <- c("service", "since phd")
+head(salary.long)
+```
+
+
+
+
+
+
+
