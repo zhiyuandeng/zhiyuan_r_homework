@@ -1,0 +1,123 @@
+---
+title: "Day 6 Homework"
+output: html_document
+---
+
+0. Reload your data, and re-use the code you already have for getting things formatted nicely (columns renamed, factors relabeled, etc.)
+
+```{r}
+library(dplyr)
+library(tidyverse)
+prof.salary <- read.csv("salaries.csv")
+head(prof.salary)
+colnames(prof.salary)[1] <- "ID"
+prof.salary$ID <- as.character(prof.salary$ID)
+summary(prof.salary)
+```
+
+1. Run TWO DIFFERENT simple analyses or statistical tests, such as linear regression (`lm()`), logistic regression (`glm()`), correlation test (`cor.test()`), t-test (`t.test()`), or non-parametric tests (e.g., `wilcox.test()`).  For each of these:
+  - Describe why you are doing this analysis, i.e., what question is it answering?
+  - I won't judge you on statistical expertise!  (though I will make comments if I think I can be helpful)
+  - Report some key statistics from the analysis, using **inline** code. HINT: outside of an R code chunk, use `` format.
+  
+```{r}
+# The first analysis is a t-test between the salary for professors in discipline A and the salary for professors in discipline B to compare the difference between their means.
+
+A.prof.salary <- prof.salary$salary[prof.salary$discipline == "A" & prof.salary$rank == "Prof"]
+B.prof.salary <- prof.salary$salary[prof.salary$discipline == "B" & prof.salary$rank == "Prof"]
+
+results1 <- t.test(A.prof.salary, B.prof.salary)
+
+# The second analysis investigates whether there is a correlation between the years of service and the salary for professors in discipline B.
+B.prof.service <- prof.salary$yrs.service[prof.salary$discipline == "B" & prof.salary$rank == "Prof"]
+results2 <- cor.test(B.prof.service, B.prof.salary)
+
+```
+I am not quite familiar with the report of results. Please let me know if there are errors.
+
+The first analysis is a t-test between the salary for professors in discipline A and the salary for professors in discipline B. There is a strong effect for discipline, _t_(`r round(results1$parameter, 0)`) = `r round(results1$statistic, 2)`, _p_ < `r ceiling(results1$p.value/0.01)*0.01`, with professors in discipline A earning significantly less than professors in discipline B.
+
+The second analysis investigates whether there is a correlation between the years of service and the salary for professors in discipline B. The results show the two variables are not strongly correlated, _r_(`r round(results2$parameter, 0)`) = `r round(results2$estimate, 2)`, _p_ < `r ceiling(results2$p.value/0.01)*0.01`.
+
+2. Pick a single numerical variable from your data.  Use `ggplot` to plot a histogram and a density plot (separately).
+   - Try some different values for `binwidth` for the histogram.
+   - Try some different values for `adjust` for the density plot.
+
+```{r}
+plot1 <- ggplot(data = prof.salary, aes(x = salary)) + geom_histogram() + theme_minimal()
+
+plot2 <- ggplot(data = prof.salary, aes(x = salary)) + geom_density(fill = "grey") + theme_minimal()
+```
+
+3. How does the distribution look?  Try transforming the variable and try to get it to look more normal (i.e., more Gaussian).  If it already looks normal, do something to it to make it look non-normal.
+
+```{r}
+plot3 <- ggplot(prof.salary, aes(log(salary))) + geom_histogram() + theme_minimal()
+
+plot4 <- ggplot(prof.salary, aes(log(salary))) + geom_density(fill = "grey", alpha = .5) + theme_minimal()
+```
+
+4. Is there a factor that you can use to break up this variable into groups of observations?  If not, reshape your data so that there is, or create a factor if necessary.  Then, do the following:
+   - Plot it as a density plot, mapping `color` to the factor
+   - Same, but try using `fill` instead of `color`
+   - Same, using `linetype` instead of `color`
+   - Plot the data as a boxplot, with the factor as `x` and the numerical variable as `y`  HINT: use geom_boxplot
+
+```{r}
+plot5 <- ggplot(prof.salary, aes(log(salary), color = discipline)) + geom_density() + theme_minimal()
+plot6 <- ggplot(prof.salary, aes(log(salary), fill = discipline)) + geom_density(alpha = .5) + theme_minimal()
+plot7 <- ggplot(prof.salary, aes(log(salary), linetype = discipline)) + geom_density() + theme_minimal()
+plot8 <- ggplot(prof.salary, aes(x = discipline, y = log(salary))) + geom_boxplot() + theme_minimal()
+```
+
+5. Create a bar plot of the cell means of some variable. Steps:
+   - Find a numerical variable and a grouping factor (this can be the same as those chosen above).
+   - Get the mean value of the numerical variable, broken down by the factor.  
+   - Plot this new aggregated data frame, using the "bar" geom.
+   - HINT: use stat = "identity" in the geom_bar() function.
+   
+```{r}
+salary.means <- summarize(group_by(prof.salary, discipline), mean.salary = mean(salary))
+plot9 <- ggplot(salary.means, aes(x = discipline, y = mean.salary)) + geom_bar(stat = "identity") + theme_minimal()
+
+```
+   
+6. Create a bar plot that gets means broken down by TWO grouping factors.  For example, if Factor A has levels "red" and "blue" and Factor B has levels "north" and "south", get the cell means of "red north", "red south", "blue north", and "blue south."  
+   - Use the dplyr methods to get these means into a data frame format.
+   - Use the "bar" geom, but map the two variables to different graphical dimension.  One should be the "x" value, but the other should be mapped to some other visual property.
+
+```{r}
+salary.means1 <- summarize(group_by(prof.salary, discipline, sex), mean.salary = mean(salary))
+plot10 <- ggplot(salary.means1, aes(x = discipline, y = mean.salary, fill = sex)) + geom_bar(stat = "identity") + theme_minimal()
+
+```
+
+7. Output all of the plots above (from problems 1-6) as a single PDF.
+
+```{r}
+pdf("all_plots.pdf", width = 10, height = 6)
+print(plot1)
+print(plot2)
+print(plot3)
+print(plot4)
+print(plot5)
+print(plot6)
+print(plot7)
+print(plot8)
+print(plot9)
+print(plot10)
+dev.off()
+```
+
+8. Is there a better type of visualization for your data?  What numbers would you like to be able to visualize better?  Be as explicit as possible, and write some "pseudo-code" to ilustrate what you think you would like.
+
+```{r}
+# There are three factor variables (discipline, rank, and sex) that I want to include in the visualization of my data.
+
+salary.means2 <- summarize(group_by(prof.salary, discipline, rank, sex), mean.salary = mean(salary))
+
+ggplot(salary.means2, aes(x = discipline, y = mean.salary, fill = sex)) + geom_bar(stat = "identity") + facet_wrap(~ rank)
+```
+
+
+
