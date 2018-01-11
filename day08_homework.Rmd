@@ -1,0 +1,68 @@
+---
+title: "Day 8 Homework"
+output: html_document
+---
+
+Find two repetitive things that you would like to be able to do with your data.  This can be something having to do with coding variables, or saving plots, or running an analysis multiple times on different subsets, etc. etc.  Just try to find something where you would normally need to "copy and paste" sections of code, varying only one or two things.  Figure out how to use a loop to accomplish this.  
+
+For BOTH of these things, take the following steps:
+
+1. Articulate what you want to do (verbally)
+
+a) I want to create three scatter plots for professors of different ranks, mapping yrs.service to x-axis, salary to y-axis, discipline to color.
+
+b) I want to conduct three correlation tests between yrs.service and salary for professors of different ranks, and store the results to a data.frame. 
+
+2. Give some code that illustrates the "copy and paste" method.  This can just show a couple of steps.  That is, if you would be running through a bunch of iterations, just copy and paste a couple of times, not everything.
+
+```{r}
+library(ggplot2)
+library(scales)
+
+# copy and paste for a)
+prof.salary <- read.csv("salaries.csv")
+colnames(prof.salary)[1] <- "ID"
+prof.salary$ID <- as.character(prof.salary$ID)
+prof.salary$rank <- relevel(prof.salary$rank, "Prof")
+levels(prof.salary$rank) <- factor(c("Professor", "Associate Professor", "Assistant Professor"))
+levels(prof.salary$discipline) <- factor(c("Biology", "Physics"))
+
+ggplot(prof.salary[prof.salary$rank == "Professor", ], aes(yrs.service, salary, color = discipline)) + geom_point() + geom_smooth(method = "lm") + scale_x_continuous(name = "Length of Service (years)") + scale_y_continuous(name = "Salary (dollars)", label = dollar) + scale_color_brewer(palette = "Set1", name = "Discipline") + ggtitle("Professor")
+
+ggplot(prof.salary[prof.salary$rank == "Associate Professor", ], aes(yrs.service, salary, color = discipline)) + geom_point() + geom_smooth(method = "lm") + scale_x_continuous(name = "Length of Service (years)") + scale_y_continuous(name = "Salary (dollars)", label = dollar) + scale_color_brewer(palette = "Set1", name = "Discipline") + ggtitle("Associate Professor")
+
+# copy and paste for b)
+result1 <- cor.test(prof.salary[prof.salary$rank == "Professor", ]$yrs.service, prof.salary[prof.salary$rank == "Professor", ]$salary)
+result2 <- cor.test(prof.salary[prof.salary$rank == "Associate Professor", ]$yrs.service, prof.salary[prof.salary$rank == "Associate Professor", ]$salary)
+result3 <- cor.test(prof.salary[prof.salary$rank == "Assistant Professor", ]$yrs.service, prof.salary[prof.salary$rank == "Assistant Professor", ]$salary)
+cor.results <- data.frame(rank = levels(prof.salary$rank), results = c(result1$estimate, result2$estimate, result3$estimate))
+cor.results
+```
+
+
+3. Work this code into a loop format, so that no copy & paste is neccesary.  You will need to set up a "counter" variable that cycles through various values (which do not have to be numeric), changing with every pass through the loop.  But you may also need to make other changes to your code to accommodate the loop.
+
+```{r}
+# loop for a)
+pdf("loop_plots.pdf", width = 8, height = 6)
+for(this.rank in levels(prof.salary$rank)){
+  print(ggplot(prof.salary[prof.salary$rank == this.rank, ], 
+               aes(yrs.service, salary, color = discipline)) + 
+          geom_point() + geom_smooth(method = "lm") + 
+          scale_x_continuous(name = "Length of Service (years)") + 
+          scale_y_continuous(name = "Salary (dollars)", label = dollar) +
+          scale_color_brewer(palette = "Set1", name = "Discipline") + ggtitle(this.rank))
+}
+dev.off()
+
+# loop for b)
+cor.results2 <- data.frame(rank = levels(prof.salary$rank), results = NA)
+for(this.rank in levels(prof.salary$rank)){
+   this.result <- cor.test(prof.salary[prof.salary$rank == this.rank, ]$yrs.service, 
+                           prof.salary[prof.salary$rank == this.rank, ]$salary)
+   cor.results2[cor.results2$rank == this.rank, "results"] <- this.result$estimate
+}
+cor.results2
+```
+
+As usual, send me your .Rmd file with any data I need to replicate your results.
