@@ -36,9 +36,9 @@ levels(prof.salary$discipline) <- factor(c("Biology", "Physics"))
 4. Use ggplot2 to create your graphs.
 
 ```{r}
-plot1 <- ggplot(prof.salary, aes(yrs.service, salary, color = rank)) + geom_point(alpha = .3) + facet_wrap(~ discipline, nrow = 2) + geom_smooth(method = "lm")
+plot1 <- ggplot(prof.salary, aes(yrs.service, salary, color = rank)) + geom_point(alpha = .3) + facet_wrap(~ discipline) + geom_smooth(method = "lm")
 
-plot2 <- ggplot(prof.salary, aes(yrs.since.phd, salary, color = rank)) + geom_point(alpha = .3) + facet_wrap(~ discipline, nrow = 2) + geom_smooth(method = "lm")
+plot2 <- ggplot(prof.salary, aes(yrs.since.phd, salary, color = rank)) + geom_point(alpha = .3) + facet_wrap(~ discipline) + geom_smooth(method = "lm")
 
 salary.means <- summarize(group_by(prof.salary, discipline, rank, sex), mean.salary = mean(salary))
 
@@ -77,15 +77,15 @@ plot3.1 <- plot3 + scale_x_discrete(name = "Discipline") +
 6. Save all plots to a format that you could use in a paper.  HINT: PNG works well for pasting into Word documents.
 
 ```{r}
-png("plot1.png")
+png("plot1.png", width = 10, height = 4, units = "in", res = 300)
 plot1.1
 dev.off()
 
-png("plot3.png", width = 480, height = 360)
+png("plot3.png", width = 10, height = 4, units = "in", res = 300)
 plot3.1
 dev.off()
 
-png("plot2.png")
+png("plot2.png", width = 10, height = 4, units = "in", res = 300)
 plot2.1
 dev.off()
 ```
