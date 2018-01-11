@@ -116,7 +116,7 @@ dev.off()
 
 salary.means2 <- summarize(group_by(prof.salary, discipline, rank, sex), mean.salary = mean(salary))
 
-ggplot(salary.means2, aes(x = discipline, y = mean.salary, fill = sex)) + geom_bar(stat = "identity") + facet_wrap(~ rank)
+ggplot(salary.means2, aes(x = discipline, y = mean.salary)) + geom_bar(stat = "identity", aes(fill = sex), position = "dodge") + facet_wrap(~ rank)
 ```
 
 

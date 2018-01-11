@@ -1,0 +1,92 @@
+---
+title: "Day 7 Homework"
+output: html_document
+---
+
+Find three relationships in your data.  For each relationship, do the following:
+
+1. Verbally articulate the relationship you want to examine with a plot.
+
+2. Verbally identify what variables you want to map to each graphical dimension.
+
+3. Reshape your data as needed.
+
+```{r}
+# Relationship 1: I want to investigate the relationship between the length of service and the salary for professors in discipline A and B, taking their rank into consideration. I want to create a scatter plot, and map length of service (in years) to the x-axis, salary to the y-axis, rank to color, and discipline to facet_wrap.
+
+# Relationship 2: I want to investigate the relationship between years since PhD and the salary for professors in discipline A and B, taking their rank into consideration. I want to create a scatter plot, and map years since PhD to the x-axis, the salary to the y-axis, rank to color, and discipline to facet_wrap.
+
+# Relationship 3: I want to compare the means of salary for professors in discipline A and B, taking their rank and sex into consideration. I want to create a bar plot, and map discipline to x-axis, means of salary to y-axis, sex to color, and rank to facet_wrap.
+
+library(reshape2)
+library(ggplot2)
+library(dplyr)
+library(scales)
+prof.salary <- read.csv("salaries.csv")
+summary(prof.salary)
+
+colnames(prof.salary)[1] <- "ID"
+prof.salary$ID <- as.character(prof.salary$ID)
+prof.salary$rank <- relevel(prof.salary$rank, "Prof")
+levels(prof.salary$rank) <- factor(c("Professor", "Associate Professor", "Assistant Professor"))
+levels(prof.salary$discipline) <- factor(c("Biology", "Physics"))
+
+```
+
+4. Use ggplot2 to create your graphs.
+
+```{r}
+plot1 <- ggplot(prof.salary, aes(yrs.service, salary, color = rank)) + geom_point(alpha = .3) + facet_wrap(~ discipline, nrow = 2) + geom_smooth(method = "lm")
+
+plot2 <- ggplot(prof.salary, aes(yrs.since.phd, salary, color = rank)) + geom_point(alpha = .3) + facet_wrap(~ discipline, nrow = 2) + geom_smooth(method = "lm")
+
+salary.means <- summarize(group_by(prof.salary, discipline, rank, sex), mean.salary = mean(salary))
+
+plot3 <- ggplot(salary.means, aes(discipline, mean.salary, fill = sex)) + geom_bar(stat = "identity", position = "dodge") + facet_wrap(~ rank)
+
+```
+
+5. Fiddle with colors, axis labels, themes, etc. until the plot looks "publication ready" to you.  Try to change at least one thing per plot.
+
+```{r}
+plot1.1 <- plot1 + 
+  scale_x_continuous(breaks = seq(0, 60, 10), name = "Length of Service (years)") +
+  scale_y_continuous(breaks = seq(50000, 250000, 50000), name = "Salary (dollars)", 
+                     label = dollar) + 
+  scale_color_brewer(palette = "Dark2", name = "Academic Rank") + 
+  theme(text=element_text(size=12, family="serif")) + 
+  theme_grey()
+
+plot2.1 <- plot2 + scale_x_continuous(breaks = seq(0, 60, 10), 
+                                      name = "Years Since PhD (years)") +
+  scale_y_continuous(breaks = seq(50000, 250000, 50000), name = "Salary (dollars)", 
+                     label = dollar) +
+  scale_color_brewer(palette = "Set1", name = "Academic Rank") +
+  theme(text=element_text(size=12, family="serif")) + 
+  theme_grey()
+
+plot3.1 <- plot3 + scale_x_discrete(name = "Discipline") + 
+  scale_y_continuous(breaks = seq(0, 150000, 50000), 
+                     name = "Mean Salary (dollars)", 
+                     label = dollar) + 
+  labs(fill = "Gender") + 
+  theme(text=element_text(size=12, family="serif"))
+
+```
+
+6. Save all plots to a format that you could use in a paper.  HINT: PNG works well for pasting into Word documents.
+
+```{r}
+png("plot1.png")
+plot1.1
+dev.off()
+
+png("plot3.png", width = 480, height = 360)
+plot3.1
+dev.off()
+
+png("plot2.png")
+plot2.1
+dev.off()
+```
+
