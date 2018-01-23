@@ -1,0 +1,118 @@
+---
+title: "Final Project"
+author: "Zhiyuan Deng"
+output: html_document
+---
+1. Import and tweak the data before the analysis
+```{r include = FALSE}
+library(tidyverse)
+library(scales)
+```
+
+```{r}
+my.salary <- read.csv("../salaries.csv") # Import the data
+summary(my.salary) # Inspect the data
+colnames(my.salary)[1] <- "ID" # change the name for the first column
+my.salary$ID <- as.character(my.salary$ID) # change the data type from int to chr
+my.salary$rank <- relevel(my.salary$rank, "Prof")
+levels(my.salary$rank) <- c("Professor", "Associate Professor", "Assistant Professor") # rename the levels for rank
+head(my.salary)
+
+```
+
+## Objective 1
+
+I want to present visualized results showing the mean salary for professors by academic rank, discipline, and gender.
+
+```{r}
+salary.means <- summarize(group_by(my.salary, discipline, rank, sex), mean.salary = mean(salary)) # get the data (mean salary) to be plotted
+ggplot(salary.means, aes(discipline, mean.salary)) + geom_bar(aes(fill = sex), stat = "identity", position = "dodge") + scale_x_discrete(name = "Discipline") + scale_y_continuous(breaks = seq(20000, 200000, 40000), name = "Mean Sallary", labels = dollar) + scale_fill_brewer(palette = "Set1", name = "Gender") + facet_wrap(~ rank) + ggtitle("Mean Salary for Professors in Discipline A and B")
+
+```
+
+## Objective 2
+
+I want to conduct a t-test to see if there is a significant difference between the salaries for male and female professors.
+
+```{r}
+male.data <- my.salary[my.salary$sex == "Male", ]
+female.data <- my.salary[my.salary$sex == "Female", ] # two subsets to be compared (male vs. female)
+
+overall.results <- t.test(female.data$salary, male.data$salary) # results for the overall data
+overall.results
+
+```
+
+Based on the overall results, it seems that there is a significant difference between the salary for female and male professors. However, in my data set, the sample size for females is fairly small compared to the males, and there might be other differences, like maybe the women are on average not as senior. 
+
+Therefore, I want to find a matched sample of men, and see how that matched sample compares to the female group. This process will be performed for 10000 times, in order to provide something like a bootstrapped estimate of what it looks like when a matched smaller group of men is compared to the female group.
+
+```{r}
+male.prof.data <- male.data[male.data$rank == "Professor", ]
+male.assoc.data <- male.data[male.data$rank == "Associate Professor", ]
+male.asst.data <- male.data[male.data$rank == "Assistant Professor", ]
+
+female.prof.data <- female.data[female.data$rank == "Professor", ]
+female.assoc.data <- female.data[female.data$rank == "Associate Professor", ]
+female.asst.data <- female.data[female.data$rank == "Assistant Professor", ] # subset the data so that a matched sample of men can be found
+
+n.sim <- 10000
+boot.results <- data.frame(sim = 1:n.sim, statistic = NA, p.val = NA, significance = NA) # create a data frame to store the results
+for(sim in 1:n.sim) {
+  if(sim %% 1000 == 0) {
+    print(paste("starting simulation", sim))
+  }
+  sim.data.part1 <- male.prof.data[sample(nrow(female.prof.data), replace = TRUE), "salary"]
+  sim.data.part2 <- male.assoc.data[sample(nrow(female.assoc.data), replace = TRUE), "salary"]
+  sim.data.part3 <- male.asst.data[sample(nrow(female.asst.data), replace = TRUE), "salary"]
+  sim.data <- c(sim.data.part1, sim.data.part2, sim.data.part3) # sample a matched male group
+  ttest.results <- t.test(female.data$salary, sim.data)
+  statistic <- ttest.results$statistic # save the results
+  boot.results[sim, "statistic"] <- statistic
+  p.val <- ttest.results$p.value
+  boot.results[sim, "p.val"] <- p.val
+  if (p.val < 0.05) {
+    boot.results[sim, "significance"] <- "Yes"
+  } else {
+    boot.results[sim, "significance"] <- "No"
+  }
+}
+
+bottom.top.t <- quantile(boot.results$statistic, c(.025, .975))
+
+ggplot(boot.results, aes(statistic)) + geom_histogram() + geom_vline(xintercept = overall.results$statistic, color = "red") + geom_vline(xintercept = bottom.top.t[1], color = "red", linetype = 2) + geom_vline(xintercept = bottom.top.t[2], color = "red", linetype = 2) # make comparisons (t-value)
+
+bottom.top.p <- quantile(boot.results$p.val, c(.025, .975))
+
+ggplot(boot.results, aes(p.val)) + geom_histogram() + geom_vline(xintercept = overall.results$p.value, color = "red") + geom_vline(xintercept = bottom.top.p[1], color = "blue", linetype = 2) + geom_vline(xintercept = bottom.top.p[2], color = "blue", linetype = 2) + geom_vline(xintercept = 0.05, color = "red", linetype = 2) + scale_x_continuous(breaks = c(0.00, 0.05, 0.25, 0.50, 0.75, 1.00)) # make comparisons (p-value)
+
+```
+
+The results seem to indicate that when a matched group of men is sampled, there is not a significant difference between their salary and the salary for the female group. (Due to my limited statistical knowledge, I am not sure if what I did is a legitimate analysis, and I am not sure if my interpretation is correct. I look forward to your feedback.)
+
+## Objective 3
+
+I want to conduct linear regression analysis to see if salaries for professors are predicted by years of service.
+
+```{r}
+ggplot(my.salary, aes(yrs.service, salary, color = rank)) + geom_point(alpha = .3) + 
+  geom_smooth(method = "lm") +
+  scale_x_continuous(breaks = seq(0, 60, 10), name = "Length of Service (years)") + 
+  scale_y_continuous(breaks = seq(50000, 250000, 50000), name = "Salary (dollars)", label = dollar) + 
+  scale_color_brewer(palette = "Set1", name = "Academic Rank") + 
+  theme(text=element_text(size=12, family="serif")) + 
+  theme_grey()
+
+lm.results <- list("Professor", "Associate Professor", "Assistant Professor") # create a list to save the results
+for (this.rank in levels(my.salary$rank)) {
+  lm.result <- lm(salary ~ yrs.service, my.salary[my.salary$rank == this.rank, ])
+  lm.results[[this.rank]] <- lm.result
+} # conduct analysis in a loop
+
+lm.results$`Professor`
+
+lm.results$`Associate Professor`
+
+lm.results$`Assistant Professor`
+
+```
